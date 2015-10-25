@@ -1,20 +1,45 @@
 import java.io.*;
 import java.util.*;
+import java.lang.Object;
 
 
 public class main {
 	
 	
 	public static void main(String[] args){
-		ArrayList<employee> list = new ArrayList<employee>();
 		
+		//Check for an existing employee file, and read if so
+		String fileName= "Employees.txt";
+		ArrayList<employee> list = new ArrayList<employee>();
+		BufferedReader fileReader = null;
+		
+		//File reader
+		try{
+		fileReader = new BufferedReader(new FileReader(fileName));
+		
+		String line = "";
+		
+		//reading startings
+		while((line = fileReader.readLine()) != null)
+		{
+			String[] tokens = line.split(",");
+			if(tokens.length > 0){
+				employee existingEmp = new employee(tokens[0], tokens[1], Double.parseDouble(tokens[2]), Double.parseDouble(tokens[3]));
+				list.add(existingEmp);
+			}
+		}
+		
+		
+		} catch(Exception e){
+			System.out.println("Error while attempting to read file.");
+		}
 	
 	System.out.println("***Welcome to the Payroll system.***");
 	int input = 0;
 	
 	do{
 		input = options();
-
+		int size = list.size();
 	
 	switch(input) {
 	case 1 : list.add(addEmployee());
@@ -23,7 +48,7 @@ public class main {
 			 break;
 	case 2 :
 ///////////////Calculate Pay
-	int sizec = list.size();
+	
 	//check for employees
 	if(list.isEmpty()){
 		System.out.println("No employees found!");
@@ -31,8 +56,8 @@ public class main {
 	//pick an employee
 		System.out.println("Which Employee do you need to calculate? ");
 		//print list
-		for(int i = 0; i < sizec; i++){
-			System.out.println((i + 1) +") " + list.get(i).firstName + " "+ list.get(i).lastName);
+		for(int i = 0; i < size; i++){
+			System.out.println((i + 1) +") " + list.get(i).getFirstName() + " "+ list.get(i).getLastName());
 		
 		}
 		//get input
@@ -43,7 +68,7 @@ public class main {
 		if(sc.hasNextInt()){
 			
 			int storage = sc.nextInt();
-			if(storage > sizec || storage < 0){
+			if(storage > size || storage < 0){
 				System.out.println("Please enter a valid employee #");
 				
 			} else {
@@ -56,7 +81,7 @@ public class main {
 		//Get hours worked for employee
 
 			choice--;
-			System.out.println("How many hours did " + list.get(choice).firstName + " work this week?");
+			System.out.println("How many hours did " + list.get(choice).getFirstName() + " work this week?");
 			double hours = -1;
 			do{
 			if(sc.hasNextDouble()){
@@ -73,18 +98,18 @@ public class main {
 			} while(hours < 0);
 			
 			double ot = 0;
-			double payrate = list.get(choice).rate;
+			double payrate = list.get(choice).getRate();
 			if(hours > 40){
 				ot = hours - 40;
 				hours = 40;
 			}
 			
-			double pay = (payrate * hours) + (ot * payrate * list.get(choice).ot);
+			double pay = (payrate * hours) + (ot * payrate * list.get(choice).getOt());
 			
 			
 		
 			
-			System.out.printf(list.get(choice).firstName + " has earned $");
+			System.out.printf(list.get(choice).getFirstName() + " has earned $");
 			System.out.printf("%.2f", pay);
 			System.out.printf(" this week.\n");
 			
@@ -92,23 +117,42 @@ public class main {
 			 break;
 	case 3 : 
 ///////////////////// Show Info
-		int size = list.size();
+
 		if(list.isEmpty()){
 			System.out.println("No employees found!");
 		}
 		for(int i = 0; i < size; i++){
 			System.out.println("Employee " + (i + 1));
 			System.out.println("----------------");
-			System.out.println("First: " + list.get(i).firstName);
-			System.out.println("Last: " + list.get(i).lastName);
-			System.out.println("Rate: " + list.get(i).rate);
-			System.out.println("OT: " + list.get(i).ot);
+			System.out.println("First: " + list.get(i).getFirstName());
+			System.out.println("Last: " + list.get(i).getLastName());
+			System.out.println("Rate: " + list.get(i).getRate());
+			System.out.println("OT: " + list.get(i).getOt());
 		}
 			 break;
-			 
-	case 4 : System.exit(0);
-	
+		 
+	case 4 :
+////////////////////Quit
+		try{
+			
+			FileWriter writer = new FileWriter(fileName);
+			
+			for(int i=0; i<size; i++){
+				writer.write(list.get(i).getFirstName() + ",");
+				writer.write(list.get(i).getLastName() + ",");
+				String rateS = String.valueOf(list.get(i).getRate());
+				writer.write(rateS + ",");
+				String OtS = String.valueOf((list.get(i).getOt()));
+				writer.write(OtS + System.lineSeparator());
+			}
+			
+			writer.close();
+			}catch (Exception e){
+				System.err.println("Error: " + e.getMessage());
+			}
 	}
+	
+	
 	} while (input != 4);
 	
 	
@@ -210,7 +254,7 @@ public class main {
 		System.out.println("1) Add an employee");
 		System.out.println("2) Calculate pay for employee");
 		System.out.println("3) Show employee information");
-		System.out.println("4) Quit");
+		System.out.println("4) Save & Quit");
 		
 		//Input
 		Scanner sc = new Scanner(System.in);
